@@ -1,27 +1,34 @@
+
 # Gen-AI CLI (Node.js + TypeScript)
 
-A minimal CLI starter using TypeScript, with LangChain + LangGraph for chat completions.
+A minimal CLI starter using TypeScript, with LangChain for chat completions. Demonstrates GenAI patterns via a simple CLI interface.
+
+## Features
+
+- Interactive CLI for GenAI scenarios
+- Modular structure for adding more cases
+- TypeScript strictness and path aliases
 
 ## Requirements
 
 - Node.js >= 18
-- An OpenAI API key
+- OpenAI API key (or compatible API)
 
 ## Setup
 
 ```bash
-npm install
+npm ci
 cp .env.example .env
-# Edit .env and set OPENAI_API_KEY
+# Edit .env and set AI_API_KEY, AI_BASE_URL, and optionally AI_MODEL
 ```
 
-## Run (dev)
+## Run (development)
 
 ```bash
-npm run dev
+npm run start:dev
 ```
 
-## Build and Run (prod)
+## Build and Run (production)
 
 ```bash
 npm run build
@@ -30,15 +37,44 @@ npm start
 
 ## Usage
 
-- Start the CLI, then type your prompt and press Enter.
-- Type `exit` to quit.
+1. Start the CLI: `npm run start:dev` or `npm start` after build.
+2. Choose a GenAI case.
+3. Type your message and press Enter.
+4. Type `exit` to quit or return to the main menu.
 
-## Where things live
+## Project Structure
 
-- `src/index.ts` – CLI entry point using Node's `readline`.
-- `src/ai/chat.ts` – Minimal LangChain + LangGraph example for chat completion.
+- `src/index.ts` – CLI entry point (menu, scenario selection)
+- `src/userCli.ts` – User input/output helpers
+- `src/config.ts` – Environment/config management
+- `src/constants.ts` – Shared constants (e.g., exit command)
+- `src/agents/llm.ts` – LangChain LLM agent setup
+- `src/cases/` – Scenario modules (e.g., `simpleChat`)
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in:
+
+```
+AI_API_KEY=sk-...
+AI_BASE_URL=https://api.openai.com/v1
+# Optional: override default model
+AI_MODEL=gpt-4o-mini
+```
+
+## Scripts
+
+- `npm run start:dev` – Run CLI in dev mode (TypeScript)
+- `npm run build` – Build for production
+- `npm start` – Run built CLI
+- `npm run check` – Lint, format, and type-check
+
+## Extending
+
+- Add new cases in `src/cases/`
+- Register them in `src/cases/index.ts`
 
 ## Notes
 
-- Set `OPENAI_API_KEY` in your environment or `.env`.
-- Optionally set `OPENAI_MODEL` (defaults to `gpt-4o-mini`).
+- Uses LangChain and OpenAI for chat completions
+- Strict TypeScript config and ESLint/Prettier setup
