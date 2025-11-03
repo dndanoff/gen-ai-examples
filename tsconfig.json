@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "strict": true,
+    /* Improvements */
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmitOnError": true,
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    /* Modules resolution */
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "@src/*": ["src/*"]
+    }
+  },
+  "include": ["index.ts", "src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "tsc-alias": {
+    "verbose": false,
+    "resolveFullPaths": true
+  }
+}

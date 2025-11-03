@@ -1,0 +1,50 @@
+{
+  "author": "",
+  "license": "ISC",
+  "name": "gen-ai-cli",
+  "version": "0.1.0",
+  "description": "A project to demonstrate GenAI patterns",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "check:format": "prettier --check \"**/*.ts\"",
+    "check:lint": "eslint . --ext ts,js --max-warnings=0",
+    "check:types": "tsc --noEmit",
+    "check": "npm run check:lint && npm run check:format && npm run check:types",
+    "fix:format": "prettier --write \"**/*.ts\"",
+    "fix:lint": "eslint . --fix --ext ts,js --max-warnings=0",
+    "fix": "npm run fix:lint && npm run fix:format",
+    "build": "npm run check && npx tsc --project tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
+    "build:skip-checks": "npx tsc --project tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
+    "start:dev": "tsx src/index.ts",
+    "start": "node dist/src/index.js"
+  },
+  "dependencies": {
+    "@langchain/core": "1.0.2",
+    "@langchain/langgraph": "1.0.1",
+    "@langchain/openai": "1.0.0",
+    "dotenv": "17.2.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "tsc-alias": "1.8.16",
+    "@types/node": "24.9.2",
+    "tsx": "4.20.6",
+    "npm-run-all": "4.1.5",
+    "shx": "0.4.0",
+    "cross-env": "10.1.0",
+    "eslint": "9.38.0",
+    "globals": "16.4.0",
+    "@eslint/js": "9.38.0",
+    "@typescript-eslint/eslint-plugin": "8.46.2",
+    "@typescript-eslint/parser": "8.46.2",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jest": "29.0.1",
+    "eslint-plugin-prettier": "5.5.4"
+  }
+}

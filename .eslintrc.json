@@ -1,0 +1,53 @@
+{
+  "root": false,
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "es2022": true
+  },
+  "ignorePatterns": ["dist", "build"],
+  "extends": [
+    "plugin:prettier/recommended",
+    "plugin:import/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": ["prettier", "import"],
+  "rules": {
+    "import/no-cycle": "error",
+    "import/prefer-default-export": "off",
+    // Variables and functions must have only ASCII characters so that we avoid problems with Cyrillic characters
+    "id-match": ["error", "^[_a-zA-Z0-9]+$"],
+    "class-methods-use-this": "error",
+    "no-negated-condition": "error",
+    "no-console": "error",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {} // this loads <rootdir>/tsconfig.json to eslint so that imports with paths are working correctly
+    }
+  },
+  "overrides": [
+    {
+      "env": {
+        "jest": true,
+        "jest/globals": true
+      },
+      "files": ["**/*.spec.ts"],
+      "plugins": ["jest"],
+      "extends": ["plugin:jest/recommended"],
+      "rules": {
+        "jest/no-alias-methods": "error",
+        "jest/expect-expect": "error"
+      }
+    }
+  ]
+}
