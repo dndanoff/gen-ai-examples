@@ -5,10 +5,10 @@ import { ask, cli, print } from '@src/userCli';
 const chooseScenario = async (): Promise<CaseId | ExitCmd> => {
   print('Choose a genAI case to demonstrate:');
   for (const [key, value] of Object.entries(cases)) {
-    print(`  ${key}) ${value.name} - ${value.description}`);
+    print(`${key}) ${value.name}`);
   }
-  print(`  ${EXIT_CMD}) Exit`);
-  const answer = await ask('\nSelect an option: ');
+  print(`${EXIT_CMD}) Exit`);
+  const answer = await ask('Select an option: ');
 
   if (answer === EXIT_CMD) {
     return EXIT_CMD;
