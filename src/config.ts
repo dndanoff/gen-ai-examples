@@ -13,6 +13,7 @@ interface Config {
     apiKey: string;
     baseUrl: string;
     model: string;
+    searchApiKey: string;
   };
 }
 
@@ -33,7 +34,12 @@ const environmentDefaults: Record<NodeEnv, Omit<Config, 'ai'>> = {
 };
 
 // Required environment variables (no defaults)
-const requiredEnvVars = ['AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL'] as const;
+const requiredEnvVars = [
+  'AI_API_KEY',
+  'AI_BASE_URL',
+  'AI_MODEL',
+  'SEARCH_API_KEY',
+] as const;
 
 // Validation helper
 const validateNodeEnv = (env: string | undefined): NodeEnv => {
@@ -71,6 +77,7 @@ const createConfig = (): Config => {
       apiKey: process.env.AI_API_KEY!,
       baseUrl: process.env.AI_BASE_URL!,
       model: process.env.AI_MODEL!,
+      searchApiKey: process.env.SEARCH_API_KEY!,
     },
   };
 };

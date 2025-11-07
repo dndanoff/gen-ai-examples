@@ -1,7 +1,7 @@
-import { EXIT_CMD } from '@src/constants';
+import { constants } from '@src/constants';
 import { askMultiline, print } from '@src/userCli';
 import { CaseResult } from '@src/cases/index';
-import { app } from '@src/core/workflows/cvProjectExperienceCreator';
+import { runWorkflow } from '@src/core/workflows/cvProjectExperienceCreator';
 
 export const start = async (): Promise<CaseResult> => {
   print('=== Project Description Generator ===');
@@ -10,11 +10,11 @@ export const start = async (): Promise<CaseResult> => {
   );
 
   const line = await askMultiline('generator>');
-  if (line === EXIT_CMD) {
+  if (line === constants.EXIT_CMD) {
     return { reason: 'user_stopped' };
   }
 
-  const result = await app.invoke({ userDraft: line });
+  const result = await runWorkflow(line);
   console.log(result);
 
   return { reason: 'completed', meta: { result } };

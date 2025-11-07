@@ -1,2 +1,5 @@
-export const EXIT_CMD = 'exit';
-export type ExitCmd = typeof EXIT_CMD;
+export const constants = Object.freeze({
+  EXIT_CMD: 'exit',
+});
+
+export type ExitCmd = (typeof constants)['EXIT_CMD'];

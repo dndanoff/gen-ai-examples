@@ -1,5 +1,5 @@
 import { BaseMessage, HumanMessage, SystemMessage } from 'langchain';
-import { llm } from '@src/core/utils';
+import { llm } from '@src/core/llm';
 
 const systemMessage = new SystemMessage(
   'You are a helpful AI assistant engaged in a simple chat with a user.',

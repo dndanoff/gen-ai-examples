@@ -1,5 +1,5 @@
 import { cases, CaseId } from '@src/cases';
-import { EXIT_CMD, ExitCmd } from '@src/constants';
+import { constants, ExitCmd } from '@src/constants';
 import { ask, cli, print } from '@src/userCli';
 
 const chooseScenario = async (): Promise<CaseId | ExitCmd> => {
@@ -7,11 +7,11 @@ const chooseScenario = async (): Promise<CaseId | ExitCmd> => {
   for (const [key, value] of Object.entries(cases)) {
     print(`${key}) ${value.name}`);
   }
-  print(`${EXIT_CMD}) Exit`);
+  print(`${constants.EXIT_CMD}) Exit`);
   const answer = await ask('Select an option: ');
 
-  if (answer === EXIT_CMD) {
-    return EXIT_CMD;
+  if (answer === constants.EXIT_CMD) {
+    return constants.EXIT_CMD;
   } else if (Object.keys(cases).includes(answer)) {
     return answer as CaseId;
   }
@@ -26,7 +26,7 @@ const main = async () => {
   print('=== Gen-AI CLI ===');
   while (true) {
     const choice = await chooseScenario();
-    if (choice === EXIT_CMD) {
+    if (choice === constants.EXIT_CMD) {
       break;
     }
     const selectedCase = cases[choice];

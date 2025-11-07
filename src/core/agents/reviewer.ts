@@ -1,6 +1,7 @@
 import { createAgent, HumanMessage, toolStrategy } from 'langchain';
-import { llm } from '@src/core/utils';
+import { llm } from '@src/core/llm';
 import z from 'zod';
+import { SHARED_PROMPT_ELEMENTS, CV_CONTEXT } from '@src/core/prompts/shared';
 
 export const ReviewerOutput = z.object({
   overallReview: z
@@ -13,18 +14,24 @@ export const ReviewerOutput = z.object({
 
 type ReviewerOutputType = z.infer<typeof ReviewerOutput>;
 
-const systemMessage = `You are a senior HR expert that works on CV documents for IT professionals.
-Your task is to perform a thorough review of a project description that will be part of a CV.
-Analyze the text for the following aspects:
-- it MUST NOT be longer than 5 sentences
-- it MUST state what is the company and in which domain it operates
-- it MUST state what is the concrete project for
-- it MUST include concrete interesting challenges that are addressed such as performance, distributed systems, scalability, high load or managin and working with big data
-- the tone of the description MUST be catchy and convincing as a sales pitch describing how hard, challenging and interesting project that was
-- it MUST contain technology section in the end that lists applicable and used technologies in that project
-- it MUST contain keywords section in the end that lists all important aspects such as domain, architecture type i.e microservices, monolith etc, type of work i.e digitalization, modernization, migration, etc
+const systemMessage = `You are a senior technical recruiter and CV expert who reviews project descriptions for quality and effectiveness.
 
-Provide a structured review with specific, actionable suggestions.`;
+${CV_CONTEXT}
+
+Your task is to review the provided project description and identify areas for improvement.
+
+${SHARED_PROMPT_ELEMENTS.CORE_REQUIREMENTS}
+
+${SHARED_PROMPT_ELEMENTS.EXPECTED_STRUCTURE}
+
+${SHARED_PROMPT_ELEMENTS.QUALITY_CRITERIA}
+
+**Review Focus Areas:**
+- Accuracy and adherence to core requirements
+- Technical depth vs readability balance
+- Missing technical challenges or business impact
+- Structure and flow improvements
+- Keyword optimization for ATS systems`;
 
 export const reviewDescription = async (
   descriptionDraft: string,
@@ -42,6 +49,5 @@ export const reviewDescription = async (
       ),
     ],
   });
-  console.log("Test");
   return response.structuredResponse;
 };

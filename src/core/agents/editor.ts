@@ -1,6 +1,7 @@
 import { createAgent, HumanMessage, toolStrategy } from 'langchain';
-import { llm } from '@src/core/utils';
+import { llm } from '@src/core/llm';
 import z from 'zod';
+import { SHARED_PROMPT_ELEMENTS, CV_CONTEXT } from '@src/core/prompts/shared';
 
 export const EditorOutput = z.object({
   refinedDescription: z
@@ -13,19 +14,23 @@ export const EditorOutput = z.object({
 
 type EditorOutputType = z.infer<typeof EditorOutput>;
 
-const systemMessage = `You are a senior HR expert that refines CV documents for IT professionals.
-In these CVs the most important piece and your primary focus is to create a brief but concrete description of the project the user has worked on.
-The description MUST meet the following criteria:
-- you must not halucinate and stick to the user provided information
-- it MUST NOT be longer than 5 sentences
-- it MUST state what is the company and in which domain it operates
-- it MUST state what is the concrete project for
-- it MUST include concrete interesting challenges that are addressed such as performance, distributed systems, scalability, high load or managin and working with big data
-- the tone of the description MUST be catchy and convincing as a sales pitch describing how hard, challenging and interesting project that was
-- it MUST contain technology section in the end that lists applicable and used technologies in that project
-- it MUST contain keywords section in the end that lists all important aspects such as domain, architecture type i.e microservices, monolith etc, type of work i.e digitalization, modernization, migration, etc
+const systemMessage = `You are a professional editor specializing in polishing IT project descriptions for CVs.
 
-Also return which exact words would be good to be bolded in the description to highlight important aspects of the project.`;
+${CV_CONTEXT}
+
+Your task is to refine the project description based on reviewer feedback while maintaining all original information.
+
+${SHARED_PROMPT_ELEMENTS.CORE_REQUIREMENTS}
+
+${SHARED_PROMPT_ELEMENTS.EXPECTED_STRUCTURE}
+
+${SHARED_PROMPT_ELEMENTS.QUALITY_CRITERIA}
+
+**Editing Guidelines:**
+- Apply reviewer suggestions without changing factual content
+- Improve clarity, flow, and impact
+- Ensure technical terminology is used correctly
+- Maintain the engaging, professional tone`;
 
 export const refinedDescription = async (
   descriptionDraft: string,

@@ -1,6 +1,7 @@
 import { createAgent, HumanMessage, toolStrategy } from 'langchain';
-import { llm } from '@src/core/utils';
+import { llm } from '@src/core/llm';
 import z from 'zod';
+import { SHARED_PROMPT_ELEMENTS, CV_CONTEXT } from '@src/core/prompts/shared';
 
 export const CritiqueOutput = z.object({
   justification: z
@@ -19,18 +20,24 @@ export const CritiqueOutput = z.object({
 
 type CritiqueOutputType = z.infer<typeof CritiqueOutput>;
 
-const systemMessage = `You are an expert critique of project descriptions in CVs of IT professionals.
-Evaluate the following project description on a scale of 1-5 for content in accordance with the criteria:
-The description MUST meet the following criteria:
-- it MUST NOT be longer than 5 sentences
-- it MUST state what is the company and in which domain it operates
-- it MUST state what is the concrete project for
-- it MUST include concrete interesting challenges that are addressed such as performance, distributed systems, scalability, high load or managin and working with big data
-- the tone of the description MUST be catchy and convincing as a sales pitch describing how hard, challenging and interesting project that was
-- it MUST contain technology section in the end that lists applicable and used technologies in that project
-- it MUST contain keywords section in the end that lists all important aspects such as domain, architecture type i.e microservices, monolith etc, type of work i.e digitalization, modernization, migration, etc
+const systemMessage = `You are an expert judge evaluating the quality of IT project descriptions for CVs.
 
-Provide a brief justification.`;
+${CV_CONTEXT}
+
+Your task is to score the project description on how well it meets the requirements.
+
+${SHARED_PROMPT_ELEMENTS.CORE_REQUIREMENTS}
+
+${SHARED_PROMPT_ELEMENTS.EXPECTED_STRUCTURE}
+
+${SHARED_PROMPT_ELEMENTS.QUALITY_CRITERIA}
+
+**Scoring Criteria (1-10 scale):**
+- Adherence to core requirements (no hallucination, proper structure)
+- Technical depth and challenge description
+- Business impact and value demonstration
+- Professional tone and readability
+- ATS keyword optimization`;
 
 export const scoreDescription = async (
   projectDescription: string,
