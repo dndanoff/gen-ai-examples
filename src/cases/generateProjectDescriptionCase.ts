@@ -1,7 +1,7 @@
 import { constants } from '@src/constants';
 import { askMultiline, print } from '@src/userCli';
 import { CaseResult } from '@src/cases/index';
-import { runWorkflow } from '@src/core/workflows/cvProjectExperienceCreator';
+import { runWorkflow } from '@src/core/workflows/projectExperienceForCV';
 
 export const start = async (): Promise<CaseResult> => {
   print('=== Project Description Generator ===');

@@ -45,7 +45,18 @@ export const reviewDescription = async (
   const response = await agent.invoke({
     messages: [
       new HumanMessage(
-        `Review according to your instructions the following description which will be used in a CV describing project experience: ${descriptionDraft}`,
+        `Review this project description for a technical CV:
+
+"${descriptionDraft}"
+
+Evaluate and provide specific feedback on:
+- Technical accuracy and depth
+- Professional tone and readability
+- Missing technical challenges or business impact
+- ATS keyword optimization
+- Structure and flow improvements
+
+Identify concrete areas for enhancement.`,
       ),
     ],
   });

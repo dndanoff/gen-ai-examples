@@ -40,7 +40,17 @@ export const generateDescription = async (
   const response = await agent.invoke({
     messages: [
       new HumanMessage(
-        `Use the following user draft and rough description to generate the respective project description that follows the criteria: ${userDraft}`,
+        `Transform this rough project draft into a compelling CV project description:
+
+"${userDraft}"
+
+Focus on:
+- Extracting the core technical challenges and business impact
+- Highlighting the most impressive technical aspects
+- Creating an engaging narrative that showcases expertise
+- Ensuring all factual information is preserved accurately
+
+Generate a polished description with appropriate keywords for bolding.`,
       ),
     ],
   });

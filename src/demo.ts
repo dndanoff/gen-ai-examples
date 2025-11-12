@@ -2,7 +2,7 @@ import { generateDescription } from '@src/core/agents/author';
 import { scoreDescription } from '@src/core/agents/critique';
 import { refinedDescription } from '@src/core/agents/editor';
 import { reviewDescription } from '@src/core/agents/reviewer';
-import { runWorkflow } from '@src/core/workflows/cvProjectExperienceCreator';
+import { runWorkflow } from '@src/core/workflows/projectExperienceForCV';
 
 // generateDescription("Developed a web application for managing personal finances with React and Nodejs.It handled more than 400 concurent request per minute. The project was call myFinance").then(console.log);
 

@@ -1,3 +1,28 @@
+const requestTracker = new Map<
+  string,
+  { count: number; lastRequest: number }
+>();
+
+export const rateLimitCheck = (identifier: string): boolean => {
+  const now = Date.now();
+  const userStats = requestTracker.get(identifier) || {
+    count: 0,
+    lastRequest: 0,
+  };
+
+  // Reset counter every hour
+  if (now - userStats.lastRequest > 3600000) {
+    userStats.count = 0;
+  }
+
+  userStats.count++;
+  userStats.lastRequest = now;
+  requestTracker.set(identifier, userStats);
+
+  // Max 10 requests per hour
+  return userStats.count <= 10;
+};
+
 const isLoggingEnabled = true;
 
 export const log = (message: string, ...args: any[]) => {

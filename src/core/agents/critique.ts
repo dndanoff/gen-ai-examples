@@ -51,7 +51,18 @@ export const scoreDescription = async (
   const response = await agent.invoke({
     messages: [
       new HumanMessage(
-        `Evaluate the following project description: ${projectDescription}`,
+        `Score this CV project description on a scale of 1-10:
+
+"${projectDescription}"
+
+Evaluate based on:
+- Adherence to CV best practices
+- Technical depth vs. readability balance
+- Business impact demonstration
+- ATS keyword presence
+- Professional presentation quality
+
+Provide your score with detailed justification.`,
       ),
     ],
   });

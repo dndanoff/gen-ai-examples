@@ -45,12 +45,21 @@ export const refinedDescription = async (
 
   const response = await agent.invoke({
     messages: [
-      new HumanMessage(`You have the original description draft: ${descriptionDraft}.
-Reviewer also provided to you the following overall review of the description: ${overallReview}.
-Additionally, you have the following suggestions for improving the description:
-${improvements.map((i) => `- ${i}`).join(`\n`)}
+      new HumanMessage(
+        `Refine this project description based on the reviewer's feedback:
 
-Revise the original description draft according to the review and the suggestions and produce the final refined description.`),
+Original Description: "${descriptionDraft}"
+
+Reviewer Feedback: "${overallReview}"
+
+Improvement Suggestions: "${improvements}"
+
+Apply the feedback while:
+- Preserving all original factual information
+- Improving clarity and impact
+- Enhancing technical terminology usage
+- Maintaining professional, engaging tone`
+      ),
     ],
   });
 
