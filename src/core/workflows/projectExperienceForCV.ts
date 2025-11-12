@@ -5,7 +5,7 @@ import { AuthorOutput, generateDescription } from '@src/core/agents/author';
 import { reviewDescription, ReviewerOutput } from '@src/core/agents/reviewer';
 import { EditorOutput, refinedDescription } from '@src/core/agents/editor';
 import { CritiqueOutput, scoreDescription } from '@src/core/agents/critique';
-import { log, withErrorHandling, withLogging } from '@src/utils';
+import { log, withLogging } from '@src/utils';
 import { enhancePrompt, PromptEnhancerOutput } from '../agents/promptEnhancer';
 
 const MAX_REVIEW_CYCLES = 2;
@@ -28,9 +28,7 @@ const workflow = new StateGraph(WorkflowStateSchema)
   .addNode('enhancePrompt', async (state: WorkflowStateType) => {
     console.log('[workflow] Entering node: enhancePrompt');
     return {
-      promptEnhancerOutput: await withErrorHandling(withLogging(enhancePrompt))(
-        state.userDraft,
-      ),
+      promptEnhancerOutput: await withLogging(enhancePrompt)(state.userDraft),
     };
   })
   .addNode('generate', async (state: WorkflowStateType) => {
@@ -40,7 +38,7 @@ const workflow = new StateGraph(WorkflowStateSchema)
       throw new Error('Input is missing');
     }
     return {
-      authorOutput: await withErrorHandling(withLogging(generateDescription))(
+      authorOutput: await withLogging(generateDescription)(
         state.promptEnhancerOutput.enhancedPrompt,
       ),
     };
@@ -54,9 +52,7 @@ const workflow = new StateGraph(WorkflowStateSchema)
     }
 
     return {
-      reviewerOutput: await withErrorHandling(withLogging(reviewDescription))(
-        descriptionToReview,
-      ),
+      reviewerOutput: await withLogging(reviewDescription)(descriptionToReview),
     };
   })
   .addNode('edit', async (state: WorkflowStateType) => {
@@ -69,7 +65,7 @@ const workflow = new StateGraph(WorkflowStateSchema)
     }
 
     return {
-      editorOutput: await withErrorHandling(withLogging(refinedDescription))(
+      editorOutput: await withLogging(refinedDescription)(
         state.authorOutput.description,
         state.reviewerOutput.overallReview,
         state.reviewerOutput.improvements,
@@ -81,7 +77,7 @@ const workflow = new StateGraph(WorkflowStateSchema)
       throw new Error('editorOutput.refinedDescription is missing');
     }
     return {
-      critiqueOutput: await withErrorHandling(withLogging(scoreDescription))(
+      critiqueOutput: await withLogging(scoreDescription)(
         state.editorOutput.refinedDescription,
       ),
       reviewCycles: (state.reviewCycles ?? 0) + 1,
