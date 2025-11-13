@@ -71,10 +71,6 @@ function setupWebSocketHandlers() {
         setButtonLoading(isLoading);
     });
 
-    wsManager.on('graph', (data) => {
-        graphVisualizer.initialize(data);
-    });
-
     wsManager.on('node_start', ({ nodeId }) => {
         graphVisualizer.updateNodeState(nodeId, 'running');
         showStatus(`Running: ${nodeId}`, 'info');
@@ -114,7 +110,7 @@ function setupWebSocketHandlers() {
 }
 
 // Event Handlers
-function handleGenerate() {
+async function handleGenerate() {
     const userDraft = projectInput.value.trim();
 
     if (!userDraft) {
@@ -128,10 +124,26 @@ function handleGenerate() {
 
     // Disable button
     setButtonLoading(true);
-    showStatus('Connecting to workflow...', 'info');
+    showStatus('Loading workflow graph...', 'info');
 
-    // Connect WebSocket
-    wsManager.connect(userDraft);
+    try {
+        // Fetch graph via REST API
+        const response = await fetch('/api/graph');
+        if (!response.ok) {
+            throw new Error('Failed to fetch workflow graph');
+        }
+        const graphData = await response.json();
+        
+        // Initialize graph visualization
+        graphVisualizer.initialize(graphData);
+        showStatus('Connecting to workflow...', 'info');
+
+        // Connect WebSocket
+        wsManager.connect(userDraft);
+    } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+        setButtonLoading(false);
+    }
 }
 
 function handleClear() {

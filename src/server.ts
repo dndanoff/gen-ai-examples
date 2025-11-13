@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { config } from '@src/config';
 import { WorkflowRunner } from '@src/web/workflowRunner';
 import { workflowGraph } from '@src/core/workflows/projectExperienceForCV';
+import { sessionManager } from '@src/web/sessionManager';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,6 +57,7 @@ app.get('/', (_req, res) => {
 // WebSocket connection handler
 wss.on('connection', (ws) => {
   console.log('[WebSocket] Client connected');
+  console.log(`[WebSocket] Active sessions: ${sessionManager.getSessionCount()}`);
 
   ws.on('message', async (message) => {
     try {
@@ -74,8 +76,10 @@ wss.on('connection', (ws) => {
           return;
         }
 
-        const runner = new WorkflowRunner(ws);
-        await runner.run(userDraft);
+        // Create a new session for this workflow execution
+        const sessionId = sessionManager.createSession(ws, userDraft);
+        await new WorkflowRunner(ws).run(userDraft);
+        sessionManager.deactivateSession(sessionId);
       }
     } catch (error) {
       console.error('[WebSocket] Error:', error);
@@ -92,6 +96,8 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     console.log('[WebSocket] Client disconnected');
+    sessionManager.removeSessionByWebSocket(ws);
+    console.log(`[WebSocket] Active sessions: ${sessionManager.getSessionCount()}`);
   });
 
   ws.on('error', (error) => {
@@ -99,12 +105,18 @@ wss.on('connection', (ws) => {
   });
 });
 
+// Periodic cleanup of old sessions (every 10 minutes)
+setInterval(() => {
+  sessionManager.cleanupOldSessions(60); // Clean sessions older than 60 minutes
+}, 10 * 60 * 1000);
+
 // Start server
 const PORT = config.web.port;
 server.listen(PORT, () => {
   console.log(`=== Gen-AI Web Server ===`);
   console.log(`Server running at http://localhost:${PORT}`);
   console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
+  console.log(`Multi-user support enabled with session isolation`);
   console.log(`\nPress Ctrl+C to stop the server`);
 });
 

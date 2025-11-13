@@ -43,11 +43,6 @@ export class WebSocketManager {
         console.log('Received message:', message);
 
         switch (message.type) {
-            case 'graph':
-                this.emit('graph', message.data);
-                this.emit('status', { message: 'Workflow started', type: 'info' });
-                break;
-
             case 'node_start':
                 this.emit('node_start', message.data);
                 break;

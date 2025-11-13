@@ -1,9 +1,8 @@
 import { WebSocket } from 'ws';
 import { workflowGraph, runWorkflow } from '@src/core/workflows/projectExperienceForCV';
-import { GraphDto } from '@src/core/workflows/eventEnhancedFlow';
 
 export interface WorkflowMessage {
-  type: 'graph' | 'node_start' | 'node_end' | 'result' | 'error';
+  type: 'node_start' | 'node_end' | 'result' | 'error';
   data: any;
 }
 
@@ -24,13 +23,6 @@ export class WorkflowRunner {
     this.isRunning = true;
 
     try {
-      // Send graph structure first
-      const graphDto: GraphDto = workflowGraph.toGraphDto();
-      this.sendMessage({
-        type: 'graph',
-        data: graphDto,
-      });
-
       // Set up event listeners
       const nodeStartListener = (event: any) => {
         this.sendMessage({
