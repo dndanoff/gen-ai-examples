@@ -4,6 +4,8 @@ export class GraphVisualizer {
         this.container = container;
         this.nodeStates = new Map();
         this.nodeGroups = null;
+        this.edgeGroups = null;
+        this.activeEdges = new Set();
     }
 
     initialize(data) {
@@ -12,9 +14,20 @@ export class GraphVisualizer {
 
         const { nodes, edges } = data;
 
-        // Set up SVG
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight || 400;
+        // Set up SVG with minimum dimensions for scrolling
+        const containerWidth = this.container.clientWidth;
+        const containerHeight = this.container.clientHeight || 400;
+
+        // Calculate required dimensions based on graph structure
+        const graphLayers = this.calculateLayers(nodes, edges);
+        const maxNodesInLayer = Math.max(...graphLayers.map(layer => layer.length));
+
+        // Ensure enough space for all nodes (horizontal layout)
+        const minWidth = Math.max(containerWidth, graphLayers.length * 250);
+        const minHeight = Math.max(containerHeight, maxNodesInLayer * 200);
+
+        const width = minWidth;
+        const height = minHeight;
 
         const svg = d3.select(this.container)
             .append('svg')
@@ -22,22 +35,51 @@ export class GraphVisualizer {
             .attr('width', width)
             .attr('height', height);
 
-        // Create arrow marker for edges
-        svg.append('defs').append('marker')
+        // Create arrow markers for edges
+        const defs = svg.append('defs');
+
+        // Regular arrow
+        defs.append('marker')
             .attr('id', 'arrowhead')
             .attr('viewBox', '-0 -5 10 10')
-            .attr('refX', 25)
+            .attr('refX', 35)
             .attr('refY', 0)
             .attr('orient', 'auto')
-            .attr('markerWidth', 6)
-            .attr('markerHeight', 6)
+            .attr('markerWidth', 8)
+            .attr('markerHeight', 8)
             .append('path')
             .attr('d', 'M 0,-5 L 10,0 L 0,5')
             .attr('fill', '#999');
 
+        // Active arrow (for completed paths)
+        defs.append('marker')
+            .attr('id', 'arrowhead-active')
+            .attr('viewBox', '-0 -5 10 10')
+            .attr('refX', 35)
+            .attr('refY', 0)
+            .attr('orient', 'auto')
+            .attr('markerWidth', 8)
+            .attr('markerHeight', 8)
+            .append('path')
+            .attr('d', 'M 0,-5 L 10,0 L 0,5')
+            .attr('fill', '#667eea');
+
+        // Conditional arrow
+        defs.append('marker')
+            .attr('id', 'arrowhead-conditional')
+            .attr('viewBox', '-0 -5 10 10')
+            .attr('refX', 35)
+            .attr('refY', 0)
+            .attr('orient', 'auto')
+            .attr('markerWidth', 8)
+            .attr('markerHeight', 8)
+            .append('path')
+            .attr('d', 'M 0,-5 L 10,0 L 0,5')
+            .attr('fill', '#ff9800');
+
         // Create hierarchical layout
         const nodeMap = new Map();
-        const nodeRadius = 30;
+        const nodeRadius = 35; // Increased for better visibility
 
         // Calculate positions using a simple hierarchical layout
         const layers = this.calculateLayers(nodes, edges);
@@ -63,15 +105,18 @@ export class GraphVisualizer {
             isConditional: edge.isConditional
         }));
 
-        // Draw edges
-        svg.append('g')
+        // Draw edges with curved paths
+        this.edgeGroups = svg.append('g')
+            .attr('class', 'edges')
             .selectAll('path')
             .data(edgeData)
             .enter()
             .append('path')
             .attr('class', d => `link ${d.isConditional ? 'conditional' : ''}`)
-            .attr('d', d => `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`)
-            .attr('marker-end', 'url(#arrowhead)');
+            .attr('d', d => this.createCurvedPath(d.source, d.target))
+            .attr('marker-end', d => d.isConditional ? 'url(#arrowhead-conditional)' : 'url(#arrowhead)')
+            .attr('data-from', d => d.source.id)
+            .attr('data-to', d => d.target.id);
 
         // Draw nodes
         this.nodeGroups = svg.append('g')
@@ -82,18 +127,52 @@ export class GraphVisualizer {
             .attr('class', d => `node ${d.state}`)
             .attr('transform', d => `translate(${d.x},${d.y})`);
 
-        this.nodeGroups.append('circle')
-            .attr('r', nodeRadius);
+        // Add different shapes for start/end nodes
+        this.nodeGroups.each(function(d) {
+            const group = d3.select(this);
+
+            if (d.id === '__start__') {
+                // Start node: rounded rectangle
+                group.append('rect')
+                    .attr('x', -nodeRadius)
+                    .attr('y', -nodeRadius * 0.6)
+                    .attr('width', nodeRadius * 2)
+                    .attr('height', nodeRadius * 1.2)
+                    .attr('rx', 8)
+                    .attr('ry', 8);
+            } else if (d.id === '__end__') {
+                // End node: rounded rectangle
+                group.append('rect')
+                    .attr('x', -nodeRadius)
+                    .attr('y', -nodeRadius * 0.6)
+                    .attr('width', nodeRadius * 2)
+                    .attr('height', nodeRadius * 1.2)
+                    .attr('rx', 8)
+                    .attr('ry', 8);
+            } else {
+                // Regular nodes: circles
+                group.append('circle')
+                    .attr('r', nodeRadius);
+            }
+        });
 
         this.nodeGroups.append('text')
             .attr('dy', 5)
-            .text(d => d.id)
-            .style('font-size', '12px')
+            .text(d => this.formatNodeLabel(d.id))
+            .style('font-size', d => d.id.startsWith('__') ? '11px' : '12px')
+            .style('font-weight', d => d.id.startsWith('__') ? '700' : '600')
             .each(function (d) {
                 // Wrap text if too long
                 const text = d3.select(this);
-                const words = d.id.split(/(?=[A-Z])/);
-                if (words.length > 1) {
+                const label = d.id;
+
+                // Don't wrap start/end nodes
+                if (label.startsWith('__')) {
+                    return;
+                }
+
+                const words = label.split(/(?=[A-Z])/);
+                if (words.length > 1 && label.length > 10) {
                     text.text('');
                     text.append('tspan')
                         .attr('x', 0)
@@ -143,17 +222,34 @@ export class GraphVisualizer {
 
     calculatePositions(layers, width, height, nodeRadius) {
         const positions = new Map();
-        const padding = nodeRadius * 3;
-        const layerHeight = (height - padding * 2) / Math.max(layers.length - 1, 1);
+        const padding = nodeRadius;
+        const minLayerWidth = nodeRadius * 6; // Minimum horizontal spacing between layers
+        const layerWidth = Math.max(
+            minLayerWidth,
+            (width - padding * 2) / Math.max(layers.length - 1, 1)
+        );
 
         layers.forEach((layer, layerIndex) => {
-            const layerWidth = (width - padding * 2) / Math.max(layer.length - 1, 1);
+            const minNodeSpacing = nodeRadius * 5; // Minimum vertical spacing
+            const layerHeight = Math.max(
+                minNodeSpacing,
+                (height - padding * 2) / Math.max(layer.length - 1, 1)
+            );
 
             layer.forEach((nodeId, nodeIndex) => {
-                const x = layer.length === 1
-                    ? width / 2
-                    : padding + nodeIndex * layerWidth;
-                const y = padding + layerIndex * layerHeight;
+                let x, y;
+
+                // Horizontal layout: x increases with layer, y varies within layer
+                x = padding + layerIndex * layerWidth;
+
+                if (layer.length === 1) {
+                    y = height / 2;
+                } else {
+                    // Center the layer if it has fewer nodes
+                    const totalHeight = (layer.length - 1) * layerHeight;
+                    const startY = (height - totalHeight) / 2;
+                    y = startY + nodeIndex * layerHeight;
+                }
 
                 positions.set(nodeId, { x, y });
             });
@@ -169,6 +265,39 @@ export class GraphVisualizer {
                 .filter(d => d.id === nodeId)
                 .attr('class', `node ${state}`);
         }
+
+        // Update edges leading to this node if completed
+        if (state === 'completed' && this.edgeGroups) {
+            this.edgeGroups
+                .filter(function() {
+                    return d3.select(this).attr('data-to') === nodeId;
+                })
+                .attr('class', 'link active')
+                .attr('marker-end', 'url(#arrowhead-active)');
+        }
+    }
+
+    createCurvedPath(source, target) {
+        const dx = target.x - source.x;
+        const dy = target.y - source.y;
+        const dr = Math.sqrt(dx * dx + dy * dy);
+
+        // Use curved path for better visualization (horizontal layout)
+        if (Math.abs(dy) < 50) {
+            // Horizontal or near-horizontal: use straight line
+            return `M ${source.x},${source.y} L ${target.x},${target.y}`;
+        } else {
+            // Vertical: use quadratic curve
+            const curvature = 0.3;
+            const controlX = source.x + (target.x - source.x) * curvature;
+            return `M ${source.x},${source.y} Q ${controlX},${source.y + dy / 2} ${target.x},${target.y}`;
+        }
+    }
+
+    formatNodeLabel(id) {
+        if (id === '__start__') return 'START';
+        if (id === '__end__') return 'END';
+        return id;
     }
 
     clear() {

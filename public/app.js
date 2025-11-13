@@ -72,6 +72,9 @@ function setupWebSocketHandlers() {
     });
 
     wsManager.on('node_start', ({ nodeId }) => {
+        // Mark __start__ as completed when first real node starts
+        graphVisualizer.updateNodeState('__start__', 'completed');
+        
         graphVisualizer.updateNodeState(nodeId, 'running');
         showStatus(`Running: ${nodeId}`, 'info');
     });
@@ -88,6 +91,9 @@ function setupWebSocketHandlers() {
     });
 
     wsManager.on('result', (data) => {
+        // Mark __end__ as completed
+        graphVisualizer.updateNodeState('__end__', 'completed');
+        
         showStatus('Workflow completed successfully!', 'success');
         setButtonLoading(false);
 
