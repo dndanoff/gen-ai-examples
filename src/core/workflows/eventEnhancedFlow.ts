@@ -2,16 +2,19 @@ import { StateGraph } from '@langchain/langgraph';
 import EventEmitter from 'events';
 
 type NodeEvent = {
+  type: string;
   nodeId: string;
   timestamp: number;
   data?: any;
 };
 
 type NodeStartEvent = NodeEvent & {
+  type: "node_start";
   beforeState: any;
 };
 
 type NodeEndEvent = NodeEvent & {
+  type: "node_end";
   duration: number;
 } & ({ status: 'success'; afterState: any } | { status: 'error'; error: any });
 

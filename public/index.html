@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen-AI Project Description Generator</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+        window.mermaid = mermaid;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Description Generator</h1>
+            <p class="subtitle">Generate professional project descriptions for your CV using AI workflow</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Input -->
+            <div class="left-panel">
+                <h2>Project Description</h2>
+                <textarea
+                    id="projectInput"
+                    placeholder="Enter your project description here...&#10;&#10;Example:&#10;Developed a web application for managing customer orders using React and Node.js. The system includes authentication, real-time notifications, and reporting features."
+                    rows="15"
+                ></textarea>
+
+                <div class="button-container">
+                    <button id="generateBtn" class="btn-primary">
+                        <span class="btn-text">Generate</span>
+                        <span class="btn-spinner" style="display: none;">⟳</span>
+                    </button>
+                    <button id="clearBtn" class="btn-secondary">Clear</button>
+                </div>
+
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <!-- Right Panel: Workflow Visualization -->
+            <div class="right-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin-bottom: 0;">Workflow Progress</h2>
+                    <button id="viewDiagramBtn" class="btn-diagram" title="View Workflow Diagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        </svg>
+                        View Diagram
+                    </button>
+                </div>
+                <div id="graphContainer" class="graph-container">
+                    <div class="graph-placeholder">
+                        Click "Generate" to start the workflow
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-color pending"></span>
+                        <span>Pending</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color running"></span>
+                        <span>Running</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color completed"></span>
+                        <span>Completed</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color error"></span>
+                        <span>Error</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Results -->
+        <div id="resultsPanel" class="results-panel" style="display: none;">
+            <h2>Generated Result</h2>
+            <div id="resultsContent" class="results-content"></div>
+        </div>
+    </div>
+
+    <!-- Workflow Diagram Modal -->
+    <div id="diagramModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Workflow Diagram</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="mermaidContainer" class="mermaid-container"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="exportImageBtn" class="btn-export">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    Export as Image
+                </button>
+                <button id="exportTextBtn" class="btn-export">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Export as Text
+                </button>
+                <button id="copyTextBtn" class="btn-export">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Use modular version (ES6 modules) -->
+    <script type="module" src="/app.js"></script>
+
+    <!-- Fallback to original monolithic version if needed -->
+    <!-- <script src="/app-single-file.js"></script> -->
+</body>
+</html>

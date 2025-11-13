@@ -1,4 +1,4 @@
-import { END, START, StateGraph } from '@langchain/langgraph';
+import { END, START } from '@langchain/langgraph';
 import z from 'zod';
 
 import { AuthorOutput, generateDescription } from '@src/core/agents/author';
@@ -7,6 +7,7 @@ import { EditorOutput, refinedDescription } from '@src/core/agents/editor';
 import { CritiqueOutput, scoreDescription } from '@src/core/agents/critique';
 import { log, withLogging } from '@src/utils';
 import { enhancePrompt, PromptEnhancerOutput } from '../agents/promptEnhancer';
+import { EventEmittingStateGraph } from './eventEnhancedFlow';
 
 const MAX_REVIEW_CYCLES = 2;
 const MIN_ACCEPTABLE_SCORE = 4.0;
@@ -23,7 +24,7 @@ const WorkflowStateSchema = z.object({
 
 type WorkflowStateType = z.infer<typeof WorkflowStateSchema>;
 
-const workflow = new StateGraph(WorkflowStateSchema)
+const workflowGraph = new EventEmittingStateGraph(WorkflowStateSchema)
   // Add nodes
   .addNode('enhancePrompt', async (state: WorkflowStateType) => {
     console.log('[workflow] Entering node: enhancePrompt');
@@ -90,18 +91,35 @@ const workflow = new StateGraph(WorkflowStateSchema)
   .addEdge('review', 'edit')
   .addEdge('edit', 'score')
   // Conditional edge from score: loop back or end
-  .addConditionalEdges('score', (state: WorkflowStateType) => {
-    const score = state.critiqueOutput?.contentScore ?? 0;
-    const cycles = state.reviewCycles ?? 0;
-    const shouldLoop =
-      score < MIN_ACCEPTABLE_SCORE && cycles < MAX_REVIEW_CYCLES;
-    log(
-      `[workflow] Score: ${score}, Cycles: ${cycles}, Should loop: ${shouldLoop}`,
-    );
-    return shouldLoop ? 'review' : END;
-  });
+  .addConditionalEdges(
+    'score',
+    (state: WorkflowStateType) => {
+      const score = state.critiqueOutput?.contentScore ?? 0;
+      const cycles = state.reviewCycles ?? 0;
+      const shouldLoop =
+        score < MIN_ACCEPTABLE_SCORE && cycles < MAX_REVIEW_CYCLES;
+      log(
+        `[workflow] Score: ${score}, Cycles: ${cycles}, Should loop: ${shouldLoop}`,
+      );
+      return shouldLoop ? 'review' : END;
+    },
+    ['review', END],
+  );
 
-const app = workflow.compile();
+const app = workflowGraph.compile();
+
+const runWorkflow = async (userDraft: string) => {
+  if (!validateProjectDraft(userDraft)) {
+    throw new Error('Invalid project description draft provided.');
+  }
+
+  try {
+    return await app.invoke({ userDraft });
+  } catch (err) {
+    console.error('[workflow error]', err);
+    throw err;
+  }
+};
 
 const assessInputRelevance = (userDraft: string): number => {
   let score = 0;
@@ -175,19 +193,10 @@ const validateProjectDraft = (userDraft: string): boolean => {
   );
 
   const relevanceScore = assessInputRelevance(userDraft);
-  return hasProjectKeywords && !hasSuspiciousContent && relevanceScore > 4;
+
+  console.log(`hasProjectKeywords: ${hasProjectKeywords}, hasSuspiciousContent: ${hasSuspiciousContent}, relevanceScore: ${relevanceScore}`);
+
+  return hasProjectKeywords && !hasSuspiciousContent && relevanceScore > 0;
 };
 
-export const runWorkflow = async (userDraft: string) => {
-  if (!validateProjectDraft(userDraft)) {
-    throw new Error('Invalid project description draft provided.');
-  }
-
-  let result = undefined;
-  try {
-    result = await app.invoke({ userDraft });
-  } catch (err) {
-    console.error('[workflow error]', err);
-  }
-  return result;
-};
+export { workflowGraph, runWorkflow };

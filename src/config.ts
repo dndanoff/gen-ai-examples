@@ -9,6 +9,9 @@ type NodeEnv = (typeof NODE_ENVS)[number];
 interface Config {
   nodeEnv: NodeEnv;
   mockData: boolean;
+  web: {
+    port: number;
+  };
   ai: {
     apiKey: string;
     baseUrl: string;
@@ -22,14 +25,23 @@ const environmentDefaults: Record<NodeEnv, Omit<Config, 'ai'>> = {
   dev: {
     nodeEnv: 'dev',
     mockData: true,
+    web: {
+      port: 3000,
+    },
   },
   test: {
     nodeEnv: 'test',
     mockData: true,
+    web: {
+      port: 3000,
+    },
   },
   prod: {
     nodeEnv: 'prod',
     mockData: false,
+    web: {
+      port: 3000,
+    },
   },
 };
 
@@ -73,6 +85,11 @@ const createConfig = (): Config => {
   return {
     ...defaults,
     mockData: parseBoolean(process.env.MOCK_DATA) ?? defaults.mockData,
+    web: {
+      port: process.env.WEB_PORT
+        ? parseInt(process.env.WEB_PORT, 10)
+        : defaults.web.port,
+    },
     ai: {
       apiKey: process.env.AI_API_KEY!,
       baseUrl: process.env.AI_BASE_URL!,
