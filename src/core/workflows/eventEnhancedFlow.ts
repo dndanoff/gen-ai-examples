@@ -1,22 +1,22 @@
 import { StateGraph } from '@langchain/langgraph';
 import EventEmitter from 'events';
 
-type NodeEvent = {
+export type NodeEvent = {
   type: string;
   nodeId: string;
   timestamp: number;
-  data?: any;
+  sessionId?: string;
 };
 
-type NodeStartEvent = NodeEvent & {
+export type NodeStartEvent = NodeEvent & {
   type: "node_start";
-  beforeState: any;
+  data: { beforeState: any };
 };
 
-type NodeEndEvent = NodeEvent & {
+export type NodeEndEvent = NodeEvent & {
   type: "node_end";
   duration: number;
-} & ({ status: 'success'; afterState: any } | { status: 'error'; error: any });
+} & ({ status: 'success'; data: { afterState: any } } | { status: 'error'; data: { error: any } });
 
 export type GraphDto = {
   nodes: NodeDto[];
@@ -174,20 +174,24 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
   }
 
   private wrapNodeFunction(nodeId: string, nodeFunction: any): any {
-    return async (state: any) => {
+    return async (state: any, config?: any) => {
       const startTime = Date.now();
       this.nodeStartTimes.set(nodeId, startTime);
+
+      // Extract sessionId from config.configurable
+      const sessionId = config?.configurable?.sessionId;
 
       // Emit node start event
       this.eventEmitter.emit('node_start', {
         nodeId,
         timestamp: startTime,
-        beforeState: state,
+        sessionId,
+        data: { beforeState: state },
       } as NodeStartEvent);
 
       try {
-        // Execute the original node function
-        const result = await nodeFunction(state);
+        // Execute the original node function with config
+        const result = await nodeFunction(state, config);
 
         const endTime = Date.now();
         const duration = endTime - startTime;
@@ -197,8 +201,9 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
           nodeId,
           timestamp: endTime,
           duration,
+          sessionId,
           status: 'success',
-          afterState: { ...state, ...result },
+          data: { afterState: { ...state, ...result } },
         } as NodeEndEvent);
 
         this.nodeStartTimes.delete(nodeId);
@@ -212,8 +217,8 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
           nodeId,
           timestamp: endTime,
           duration,
-          status: 'error',
-          error: error instanceof Error ? error.message : String(error),
+          sessionId,
+          data: { error: error instanceof Error ? error.message : String(error) },
         } as NodeEndEvent);
 
         this.nodeStartTimes.delete(nodeId);

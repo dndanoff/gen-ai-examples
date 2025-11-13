@@ -108,13 +108,18 @@ const workflowGraph = new EventEmittingStateGraph(WorkflowStateSchema)
 
 const app = workflowGraph.compile();
 
-const runWorkflow = async (userDraft: string) => {
+const runWorkflow = async (userDraft: string, sessionId?: string) => {
   if (!validateProjectDraft(userDraft)) {
     throw new Error('Invalid project description draft provided.');
   }
 
   try {
-    return await app.invoke({ userDraft });
+    // Pass sessionId via config.configurable
+    const config = sessionId
+      ? { configurable: { sessionId } }
+      : undefined;
+    
+    return await app.invoke({ userDraft }, config);
   } catch (err) {
     console.error('[workflow error]', err);
     throw err;

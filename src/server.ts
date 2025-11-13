@@ -78,7 +78,7 @@ wss.on('connection', (ws) => {
 
         // Create a new session for this workflow execution
         const sessionId = sessionManager.createSession(ws, userDraft);
-        await new WorkflowRunner(ws).run(userDraft);
+        await new WorkflowRunner(ws, sessionId).run(userDraft);
         sessionManager.deactivateSession(sessionId);
       }
     } catch (error) {
