@@ -69,19 +69,41 @@ function setupWebSocketHandlers() {
         setButtonLoading(isLoading);
     });
 
-    wsManager.on('node_start', ({ nodeId }) => {
+    wsManager.on('node_start', ({ nodeId, timestamp, ...details }) => {
         showStatus(`Running: ${nodeId}`, 'info');
+
+        // Create stack item for this node
+        createStackItem(nodeId, {
+            name: nodeId,
+            status: 'running',
+            statusText: `Processing... ts:${timestamp}`,
+            details
+        });
     });
 
-    wsManager.on('node_end', ({ nodeId, status, duration }) => {
+    wsManager.on('node_end', ({ nodeId, status, timestamp, duration, ...details }) => {
         if (status === 'success') {
             showStatus(`Completed: ${nodeId} (${duration}ms)`, 'info');
+
+            // Update stack item to completed
+            updateStackItem(nodeId, {
+                status: 'completed',
+                statusText: `Completed in ${duration}ms ts:${timestamp}`,
+                details
+            });
         } else {
             showStatus(`Error in: ${nodeId}`, 'error');
+
+            // Update stack item to error
+            updateStackItem(nodeId, {
+                status: 'error',
+                statusText: `ts:${timestamp}`,
+                details
+            });
         }
     });
 
-    wsManager.on('result', (data) => {
+    wsManager.on('completion', (data) => {
         showStatus('Workflow completed successfully!', 'success');
         setButtonLoading(false);
 
@@ -101,6 +123,63 @@ function setupWebSocketHandlers() {
         setButtonLoading(false);
         wsManager.close();
     });
+}
+
+// Stack Item Management
+function createStackItem(id, { name, status, statusText, details }) {
+    // Remove placeholder if exists
+    const placeholder = executionContainer.querySelector('.execution-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+
+    const stackItem = document.createElement('div');
+    stackItem.className = 'stack-item';
+    stackItem.dataset.id = id;
+
+    stackItem.innerHTML = `
+        <div class="stack-item-header">
+            <div class="stack-item-title">
+                <div class="stack-item-icon ${status}"/>
+                <div class="stack-item-label">
+                    <div class="stack-item-name">${name}</div>
+                    <div class="stack-item-status">${statusText}</div>
+                </div>
+            </div>
+            <div class="stack-item-expand">▼</div>
+        </div>
+        <div class="stack-item-content">
+            <div class="stack-item-details">
+                <pre style="margin: 0; font-size: 0.85rem; line-height: 1.6; overflow-x: auto;">${JSON.stringify(details, null, 2)}</pre>
+            </div>
+        </div>
+    `;
+
+    // Add click handler for expand/collapse
+    const header = stackItem.querySelector('.stack-item-header');
+    header.addEventListener('click', () => {
+        stackItem.classList.toggle('expanded');
+    });
+
+    executionContainer.appendChild(stackItem);
+}
+
+function updateStackItem(id, { status, statusText, details }) {
+    const stackItem = executionContainer.querySelector(`[data-id="${id}"]`);
+    if (!stackItem) return;
+
+    const icon = stackItem.querySelector('.stack-item-icon');
+    icon.className = `stack-item-icon ${status}`;
+
+    const statusEl = stackItem.querySelector('.stack-item-status');
+    statusEl.textContent = statusText;
+
+    const detailsEl = stackItem.querySelector('.stack-item-details pre');
+    detailsEl.textContent = JSON.stringify(details, null, 2);
+}
+
+function clearStackItems() {
+    executionContainer.innerHTML = '<div class="execution-placeholder">Click "Generate" to start the workflow</div>';
 }
 
 // Event Handlers
@@ -133,10 +212,13 @@ function handleClear() {
     projectInput.value = '';
     resultsPanel.style.display = 'none';
     statusMessage.style.display = 'none';
-    
+
     // Stop websocket communication
     wsManager.close();
     setButtonLoading(false);
+
+    // Clear stack items
+    clearStackItems();
 }
 
 async function handleExportImage() {

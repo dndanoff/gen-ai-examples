@@ -6,6 +6,7 @@ export type NodeEvent = {
   nodeId: string;
   timestamp: number;
   sessionId?: string;
+  data?: any;
 };
 
 export type NodeStartEvent = NodeEvent & {
@@ -184,6 +185,7 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
       // Emit node start event
       this.eventEmitter.emit('node_start', {
         nodeId,
+        type: 'node_start',
         timestamp: startTime,
         sessionId,
         data: { beforeState: state },
@@ -199,6 +201,7 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
         // Emit node end event
         this.eventEmitter.emit('node_end', {
           nodeId,
+          type: 'node_end',
           timestamp: endTime,
           duration,
           sessionId,
@@ -214,6 +217,7 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
 
         // Emit node end event even on error
         this.eventEmitter.emit('node_end', {
+          type: 'node_end',
           nodeId,
           timestamp: endTime,
           duration,

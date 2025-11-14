@@ -1,11 +1,6 @@
 import { WebSocket } from 'ws';
 import { workflowGraph, runWorkflow } from '@src/core/workflows/projectExperienceForCV';
-import { NodeEndEvent, NodeStartEvent } from '@src/core/workflows/eventEnhancedFlow';
-
-export interface WorkflowMessage {
-  type: 'node_start' | 'node_end' | 'result' | 'error';
-  data: any;
-}
+import { NodeEndEvent, NodeEvent, NodeStartEvent } from '@src/core/workflows/eventEnhancedFlow';
 
 export class WorkflowRunner {
   private isRunning = false;
@@ -18,7 +13,10 @@ export class WorkflowRunner {
   async run(userDraft: string): Promise<void> {
     if (this.isRunning) {
       this.sendMessage({
+        nodeId: '__start__',
         type: 'error',
+        timestamp: new Date().getTime(),
+        sessionId: this.sessionId,
         data: { message: 'Workflow is already running' },
       });
       return;
@@ -31,34 +29,14 @@ export class WorkflowRunner {
       const nodeStartListener = (event: NodeStartEvent) => {
         // Only send events that match this session
         if (event.sessionId === this.sessionId) {
-          this.sendMessage({
-            type: 'node_start',
-            data: {
-              nodeId: event.nodeId,
-              type: event.type,
-              timestamp: event.timestamp,
-              sessionId: event.sessionId,
-              data: event.data,
-            },
-          });
+          this.sendMessage(event);
         }
       };
 
       const nodeEndListener = (event: NodeEndEvent) => {
         // Only send events that match this session
         if (event.sessionId === this.sessionId) {
-          this.sendMessage({
-            type: 'node_end',
-            data: {
-              nodeId: event.nodeId,
-              type: event.type,
-              timestamp: event.timestamp,
-              duration: event.duration,
-              status: event.status,
-              data: event.data,
-              sessionId: event.sessionId,
-            },
-          });
+          this.sendMessage(event);
         }
       };
 
@@ -70,12 +48,18 @@ export class WorkflowRunner {
 
       // Send final result
       this.sendMessage({
-        type: 'result',
+        nodeId: '__end__',
+        type: 'completion',
+        timestamp: new Date().getTime(),
+        sessionId: this.sessionId,
         data: result,
       });
     } catch (error) {
       this.sendMessage({
+        nodeId: '__end__',
         type: 'error',
+        timestamp: new Date().getTime(),
+        sessionId: this.sessionId,
         data: {
           message: error instanceof Error ? error.message : String(error),
         },
@@ -85,7 +69,7 @@ export class WorkflowRunner {
     }
   }
 
-  private sendMessage(message: WorkflowMessage): void {
+  private sendMessage(message: NodeEvent | NodeStartEvent | NodeEndEvent): void {
     if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     }

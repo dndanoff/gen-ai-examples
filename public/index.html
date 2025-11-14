@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,22 +12,31 @@
         window.mermaid = mermaid;
     </script>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>Project Description Generator</h1>
             <p class="subtitle">Generate professional project descriptions for your CV using AI workflow</p>
         </header>
-
+        <menu>
+            <button id="viewDiagramBtn" class="btn-diagram" title="View Workflow Diagram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                </svg>
+                View Diagram
+            </button>
+        </menu>
         <div class="main-content">
             <!-- Left Panel: Input -->
             <div class="left-panel">
                 <h2>Project Description</h2>
-                <textarea
-                    id="projectInput"
+                <textarea id="projectInput"
                     placeholder="Enter your project description here...&#10;&#10;Example:&#10;Developed a web application for managing customer orders using React and Node.js. The system includes authentication, real-time notifications, and reporting features."
-                    rows="15"
-                ></textarea>
+                    rows="15"></textarea>
 
                 <div class="button-container">
                     <button id="generateBtn" class="btn-primary">
@@ -43,15 +53,6 @@
             <div class="right-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="margin-bottom: 0;">Workflow Progress</h2>
-                    <button id="viewDiagramBtn" class="btn-diagram" title="View Workflow Diagram">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                        </svg>
-                        View Diagram
-                    </button>
                 </div>
                 <div id="executionContainer" class="execution-container">
                     <div class="execution-placeholder">
@@ -59,6 +60,10 @@
                     </div>
                 </div>
                 <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-color running"></span>
+                        <span>Running</span>
+                    </div>
                     <div class="legend-item">
                         <span class="legend-color completed"></span>
                         <span>Completed</span>
@@ -124,4 +129,5 @@
     <!-- Fallback to original monolithic version if needed -->
     <!-- <script src="/app-single-file.js"></script> -->
 </body>
+
 </html>

@@ -44,19 +44,19 @@ export class WebSocketManager {
 
         switch (message.type) {
             case 'node_start':
-                this.emit('node_start', message.data);
+                this.emit('node_start', message);
                 break;
 
             case 'node_end':
-                this.emit('node_end', message.data);
+                this.emit('node_end', message);
                 break;
 
-            case 'result':
-                this.emit('result', message.data);
+            case 'completion':
+                this.emit('completion', message);
                 break;
 
             case 'error':
-                this.emit('error', message.data);
+                this.emit('error', message);
                 break;
         }
     }
