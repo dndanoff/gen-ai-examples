@@ -91,8 +91,6 @@ The D3.js visualization shows:
 - **Nodes** representing workflow steps
 - **Edges** showing the flow between steps (solid for regular, dashed for conditional)
 - **Real-time status updates** with color coding:
-  - Gray: Pending
-  - Yellow (pulsing): Running
   - Green: Completed
   - Red: Error
 
@@ -108,8 +106,8 @@ The D3.js visualization shows:
 ## Example Project Description
 
 ```
-Developed a web application for managing customer orders using React and Node.js. 
-The system includes authentication, real-time notifications, and reporting features. 
+Developed a web application for managing customer orders using React and Node.js.
+The system includes authentication, real-time notifications, and reporting features.
 Implemented RESTful APIs and integrated with PostgreSQL database.
 ```
 

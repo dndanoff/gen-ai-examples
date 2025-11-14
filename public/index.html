@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gen-AI Project Description Generator</title>
     <link rel="stylesheet" href="/styles.css">
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: false, theme: 'default' });
@@ -34,7 +33,7 @@
                         <span class="btn-text">Generate</span>
                         <span class="btn-spinner" style="display: none;">⟳</span>
                     </button>
-                    <button id="clearBtn" class="btn-secondary">Clear</button>
+                    <button id="clearBtn" class="btn-secondary">Reset</button>
                 </div>
 
                 <div id="statusMessage" class="status-message"></div>
@@ -54,20 +53,12 @@
                         View Diagram
                     </button>
                 </div>
-                <div id="graphContainer" class="graph-container">
-                    <div class="graph-placeholder">
+                <div id="executionContainer" class="execution-container">
+                    <div class="execution-placeholder">
                         Click "Generate" to start the workflow
                     </div>
                 </div>
                 <div class="legend">
-                    <div class="legend-item">
-                        <span class="legend-color pending"></span>
-                        <span>Pending</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color running"></span>
-                        <span>Running</span>
-                    </div>
                     <div class="legend-item">
                         <span class="legend-color completed"></span>
                         <span>Completed</span>

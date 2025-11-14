@@ -1,6 +1,5 @@
 // Main application entry point
 import { WebSocketManager } from './js/websocket.js';
-import { GraphVisualizer } from './js/graph.js';
 import { DiagramModal } from './js/modal.js';
 import { DiagramExporter } from './js/export.js';
 
@@ -9,7 +8,7 @@ const projectInput = document.getElementById('projectInput');
 const generateBtn = document.getElementById('generateBtn');
 const clearBtn = document.getElementById('clearBtn');
 const statusMessage = document.getElementById('statusMessage');
-const graphContainer = document.getElementById('graphContainer');
+const executionContainer = document.getElementById('executionContainer');
 const resultsPanel = document.getElementById('resultsPanel');
 const resultsContent = document.getElementById('resultsContent');
 
@@ -24,7 +23,6 @@ const copyTextBtn = document.getElementById('copyTextBtn');
 
 // Initialize managers
 const wsManager = new WebSocketManager();
-const graphVisualizer = new GraphVisualizer(graphContainer);
 const diagramModal = new DiagramModal(diagramModalElement, mermaidContainer);
 
 // Initialize
@@ -37,11 +35,11 @@ function setupEventListeners() {
     // Main actions
     generateBtn.addEventListener('click', handleGenerate);
     clearBtn.addEventListener('click', handleClear);
-    
+
     // Modal actions
     viewDiagramBtn.addEventListener('click', () => diagramModal.open());
     closeModalBtn.addEventListener('click', () => diagramModal.close());
-    
+
     // Export actions
     exportImageBtn.addEventListener('click', handleExportImage);
     exportTextBtn.addEventListener('click', handleExportText);
@@ -72,17 +70,10 @@ function setupWebSocketHandlers() {
     });
 
     wsManager.on('node_start', ({ nodeId }) => {
-        // Mark __start__ as completed when first real node starts
-        graphVisualizer.updateNodeState('__start__', 'completed');
-        
-        graphVisualizer.updateNodeState(nodeId, 'running');
         showStatus(`Running: ${nodeId}`, 'info');
     });
 
     wsManager.on('node_end', ({ nodeId, status, duration }) => {
-        const state = status === 'success' ? 'completed' : 'error';
-        graphVisualizer.updateNodeState(nodeId, state);
-        
         if (status === 'success') {
             showStatus(`Completed: ${nodeId} (${duration}ms)`, 'info');
         } else {
@@ -91,9 +82,6 @@ function setupWebSocketHandlers() {
     });
 
     wsManager.on('result', (data) => {
-        // Mark __end__ as completed
-        graphVisualizer.updateNodeState('__end__', 'completed');
-        
         showStatus('Workflow completed successfully!', 'success');
         setButtonLoading(false);
 
@@ -125,7 +113,6 @@ async function handleGenerate() {
     }
 
     // Reset state
-    graphVisualizer.clear();
     resultsPanel.style.display = 'none';
 
     // Disable button
@@ -133,17 +120,7 @@ async function handleGenerate() {
     showStatus('Loading workflow graph...', 'info');
 
     try {
-        // Fetch graph via REST API
-        const response = await fetch('/api/graph');
-        if (!response.ok) {
-            throw new Error('Failed to fetch workflow graph');
-        }
-        const graphData = await response.json();
-        
-        // Initialize graph visualization
-        graphVisualizer.initialize(graphData);
         showStatus('Connecting to workflow...', 'info');
-
         // Connect WebSocket
         wsManager.connect(userDraft);
     } catch (error) {
@@ -154,9 +131,12 @@ async function handleGenerate() {
 
 function handleClear() {
     projectInput.value = '';
-    graphVisualizer.clear();
     resultsPanel.style.display = 'none';
     statusMessage.style.display = 'none';
+    
+    // Stop websocket communication
+    wsManager.close();
+    setButtonLoading(false);
 }
 
 async function handleExportImage() {
