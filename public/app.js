@@ -140,7 +140,7 @@ function createStackItem(id, { name, status, statusText, details }) {
     stackItem.innerHTML = `
         <div class="stack-item-header">
             <div class="stack-item-title">
-                <div class="stack-item-icon ${status}"/>
+                <div class="stack-item-icon ${status}"></div>
                 <div class="stack-item-label">
                     <div class="stack-item-name">${name}</div>
                     <div class="stack-item-status">${statusText}</div>
@@ -254,13 +254,13 @@ function showStatus(message, type) {
 function setButtonLoading(loading) {
     generateBtn.disabled = loading;
     const btnText = generateBtn.querySelector('.btn-text');
-    const btnSpinner = generateBtn.querySelector('.btn-spinner');
+    const btnThinking = generateBtn.querySelector('.btn-thinking');
 
     if (loading) {
         btnText.style.display = 'none';
-        btnSpinner.style.display = 'inline-block';
+        btnThinking.style.display = 'inline-block';
     } else {
         btnText.style.display = 'inline';
-        btnSpinner.style.display = 'none';
+        btnThinking.style.display = 'none';
     }
 }

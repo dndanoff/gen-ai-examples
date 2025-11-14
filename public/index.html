@@ -41,7 +41,7 @@
                 <div class="button-container">
                     <button id="generateBtn" class="btn-primary">
                         <span class="btn-text">Generate</span>
-                        <span class="btn-spinner" style="display: none;">⟳</span>
+                        <span class="btn-thinking" style="display: none;">Thinking...</span>
                     </button>
                     <button id="clearBtn" class="btn-secondary">Reset</button>
                 </div>
@@ -53,11 +53,6 @@
             <div class="right-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="margin-bottom: 0;">Workflow Progress</h2>
-                </div>
-                <div id="executionContainer" class="execution-container">
-                    <div class="execution-placeholder">
-                        Click "Generate" to start the workflow
-                    </div>
                 </div>
                 <div class="legend">
                     <div class="legend-item">
@@ -71,6 +66,11 @@
                     <div class="legend-item">
                         <span class="legend-color error"></span>
                         <span>Error</span>
+                    </div>
+                </div>
+                <div id="executionContainer" class="execution-container">
+                    <div class="execution-placeholder">
+                        Click "Generate" to start the workflow
                     </div>
                 </div>
             </div>
