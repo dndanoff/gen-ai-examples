@@ -3,13 +3,17 @@ import { WebSocketManager } from './js/websocket.js';
 import { DiagramModal } from './js/modal.js';
 import { DiagramExporter } from './js/export.js';
 import { EventStack } from './js/event-stack.js';
+import { GraphVisualizer } from './js/graph-visualizer.js';
 
 // DOM elements
 const projectInput = document.getElementById('projectInput');
 const generateBtn = document.getElementById('generateBtn');
 const clearBtn = document.getElementById('clearBtn');
 const statusMessage = document.getElementById('statusMessage');
-const executionContainer = document.getElementById('executionContainer');
+const eventStackContainer = document.getElementById('eventStackContainer');
+const graphContainer = document.getElementById('graphContainer');
+const graphMermaid = document.getElementById('graphMermaid');
+const viewToggle = document.getElementById('viewToggle');
 const resultsPanel = document.getElementById('resultsPanel');
 const resultsContent = document.getElementById('resultsContent');
 
@@ -25,18 +29,26 @@ const copyTextBtn = document.getElementById('copyTextBtn');
 // Initialize managers
 const wsManager = new WebSocketManager();
 const diagramModal = new DiagramModal(diagramModalElement, mermaidContainer);
-const eventStack = new EventStack(executionContainer);
+const eventStack = new EventStack(eventStackContainer);
+const graphVisualizer = new GraphVisualizer();
+
+// State
+let graphRendered = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     setupWebSocketHandlers();
+    loadGraphStructure();
 });
 
 function setupEventListeners() {
     // Main actions
     generateBtn.addEventListener('click', handleGenerate);
     clearBtn.addEventListener('click', handleClear);
+
+    // View toggle
+    viewToggle.addEventListener('change', handleViewToggle);
 
     // Modal actions
     viewDiagramBtn.addEventListener('click', () => diagramModal.open());
@@ -81,6 +93,13 @@ function setupWebSocketHandlers() {
             statusText: `Processing... ts:${new Date(timestamp)}`,
             details
         });
+
+        // Update graph visualizer
+        graphVisualizer.handleEvent({ type: 'node_start', nodeId, timestamp });
+        // Only render if graph view is visible
+        if (viewToggle.checked) {
+            renderGraph();
+        }
     });
 
     wsManager.on('node_end', ({ nodeId, status, timestamp, duration, ...details }) => {
@@ -93,6 +112,13 @@ function setupWebSocketHandlers() {
                 statusText: `Completed in ${duration}ms ts:${new Date(timestamp)}`,
                 details
             });
+
+            // Update graph visualizer
+            graphVisualizer.handleEvent({ type: 'node_end', nodeId, status, duration, timestamp });
+            // Only render if graph view is visible
+            if (viewToggle.checked) {
+                renderGraph();
+            }
         } else {
             showStatus(`Error in: ${nodeId}`, 'error');
 
@@ -102,6 +128,13 @@ function setupWebSocketHandlers() {
                 statusText: `ts:${new Date(timestamp)}`,
                 details
             });
+
+            // Update graph visualizer
+            graphVisualizer.handleEvent({ type: 'node_end', nodeId, status: 'error', duration, timestamp });
+            // Only render if graph view is visible
+            if (viewToggle.checked) {
+                renderGraph();
+            }
         }
     });
 
@@ -163,8 +196,14 @@ function handleClear() {
     wsManager.close();
     setButtonLoading(false);
 
-    // Clear stack items
+    // Clear stack items and reset graph
     eventStack.clear();
+    graphVisualizer.reset();
+    // Only render if graph view is visible
+    if (viewToggle.checked) {
+        renderGraph();
+    }
+    graphRendered = false;
 }
 
 async function handleExportImage() {
@@ -208,5 +247,60 @@ function setButtonLoading(loading) {
     } else {
         btnText.style.display = 'inline';
         btnThinking.style.display = 'none';
+    }
+}
+
+// Graph Visualization
+async function loadGraphStructure() {
+    try {
+        const response = await fetch('/api/graph');
+        if (!response.ok) {
+            throw new Error('Failed to load graph structure');
+        }
+        const graphDto = await response.json();
+        graphVisualizer.setGraphStructure(graphDto);
+        // Don't render immediately - wait until graph view is visible
+    } catch (error) {
+        console.error('Error loading graph structure:', error);
+    }
+}
+
+async function renderGraph() {
+    const mermaidText = graphVisualizer.getDiagram();
+    console.log(mermaidText);
+    // Clear container
+    graphMermaid.innerHTML = '';
+
+    // Create mermaid div
+    const diagramDiv = document.createElement('div');
+    diagramDiv.className = 'mermaid';
+    diagramDiv.textContent = mermaidText;
+    graphMermaid.appendChild(diagramDiv);
+
+    // Render with mermaid
+    if (window.mermaid) {
+        try {
+            await window.mermaid.run({ nodes: [diagramDiv] });
+        } catch (error) {
+            console.error('Error rendering mermaid:', error);
+        }
+    }
+}
+
+function handleViewToggle() {
+    if (viewToggle.checked) {
+        // Show graph view
+        eventStackContainer.style.display = 'none';
+        graphContainer.style.display = 'block';
+
+        // Render graph on first view or if it needs update
+        if (!graphRendered) {
+            renderGraph();
+            graphRendered = true;
+        }
+    } else {
+        // Show event stack view
+        eventStackContainer.style.display = 'block';
+        graphContainer.style.display = 'none';
     }
 }

@@ -59,36 +59,34 @@ export class GraphVisualizer {
 
             // Format node based on special nodes
             if (nodeId === '__start__') {
-                diagram += `  ${nodeId}([${label}])\n`;
+                diagram += `${nodeId}((${label}))\n`;
             } else if (nodeId === '__end__') {
-                diagram += `  ${nodeId}([${label}])\n`;
+                diagram += `${nodeId}((${label}))\n`;
             } else {
-                diagram += `  ${nodeId}[${label}]\n`;
+                diagram += `${nodeId}[${label}]\n`;
             }
         });
 
         // Add edges
         this.graphDto.edges.forEach(edge => {
             if (edge.isConditional) {
-                diagram += `  ${edge.from} -.->|conditional| ${edge.to}\n`;
+                diagram += `${edge.from} -.->|conditional| ${edge.to}\n`;
             } else {
-                diagram += `  ${edge.from} --> ${edge.to}\n`;
+                diagram += `${edge.from} --> ${edge.to}\n`;
             }
         });
 
         // Add styles
         diagram += '\n';
-        diagram += '  %% Styles\n';
-        diagram += '  classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px\n';
-        diagram += '  classDef completed fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px\n';
-        diagram += '  classDef running fill:#fff3e0,stroke:#e65100,stroke-width:3px\n';
-        diagram += '  classDef idle fill:#fafafa,stroke:#9e9e9e,stroke-width:1px\n';
+        diagram += 'classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px\n';
+        diagram += 'classDef completed fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px\n';
+        diagram += 'classDef running fill:#fff3e0,stroke:#e65100,stroke-width:3px\n';
+        diagram += 'classDef idle fill:#fafafa,stroke:#9e9e9e,stroke-width:1px\n';
 
         // Apply state classes to nodes
         diagram += '\n';
-        diagram += '  %% State\n';
         this.nodeStates.forEach((state, nodeId) => {
-            diagram += `  class ${nodeId} ${state.status}\n`;
+            diagram += `class ${nodeId} ${state.status}\n`;
         });
 
         return diagram;

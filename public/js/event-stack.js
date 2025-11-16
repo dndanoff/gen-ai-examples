@@ -38,7 +38,8 @@ export class EventStack {
             stackItem.classList.toggle('expanded');
         });
 
-        this.container.appendChild(stackItem);
+        // Prepend to show newest on top
+        this.container.insertBefore(stackItem, this.container.firstChild);
     }
 
     updateItem(id, { status, statusText, details }) {

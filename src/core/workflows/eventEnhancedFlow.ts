@@ -120,8 +120,8 @@ export class EventEmittingStateGraph<T> extends StateGraph<T> {
     }
 
     let graph = `graph TD\n`;
-    graph += `__start__[start]\n`;
-    graph += `__end__[end]\n`;
+    graph += `__start__((start))\n`;
+    graph += `__end__((end))\n`;
 
     for (const nodeId of Object.keys(this.nodes)) {
       graph += `${nodeId}[${nodeId}]\n`;
