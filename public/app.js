@@ -2,6 +2,7 @@
 import { WebSocketManager } from './js/websocket.js';
 import { DiagramModal } from './js/modal.js';
 import { DiagramExporter } from './js/export.js';
+import { EventStack } from './js/event-stack.js';
 
 // DOM elements
 const projectInput = document.getElementById('projectInput');
@@ -24,6 +25,7 @@ const copyTextBtn = document.getElementById('copyTextBtn');
 // Initialize managers
 const wsManager = new WebSocketManager();
 const diagramModal = new DiagramModal(diagramModalElement, mermaidContainer);
+const eventStack = new EventStack(executionContainer);
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -73,10 +75,10 @@ function setupWebSocketHandlers() {
         showStatus(`Running: ${nodeId}`, 'info');
 
         // Create stack item for this node
-        createStackItem(nodeId, {
+        eventStack.createItem(nodeId, {
             name: nodeId,
             status: 'running',
-            statusText: `Processing... ts:${timestamp}`,
+            statusText: `Processing... ts:${new Date(timestamp)}`,
             details
         });
     });
@@ -86,18 +88,18 @@ function setupWebSocketHandlers() {
             showStatus(`Completed: ${nodeId} (${duration}ms)`, 'info');
 
             // Update stack item to completed
-            updateStackItem(nodeId, {
+            eventStack.updateItem(nodeId, {
                 status: 'completed',
-                statusText: `Completed in ${duration}ms ts:${timestamp}`,
+                statusText: `Completed in ${duration}ms ts:${new Date(timestamp)}`,
                 details
             });
         } else {
             showStatus(`Error in: ${nodeId}`, 'error');
 
             // Update stack item to error
-            updateStackItem(nodeId, {
+            eventStack.updateItem(nodeId, {
                 status: 'error',
-                statusText: `ts:${timestamp}`,
+                statusText: `ts:${new Date(timestamp)}`,
                 details
             });
         }
@@ -125,62 +127,6 @@ function setupWebSocketHandlers() {
     });
 }
 
-// Stack Item Management
-function createStackItem(id, { name, status, statusText, details }) {
-    // Remove placeholder if exists
-    const placeholder = executionContainer.querySelector('.execution-placeholder');
-    if (placeholder) {
-        placeholder.remove();
-    }
-
-    const stackItem = document.createElement('div');
-    stackItem.className = 'stack-item';
-    stackItem.dataset.id = id;
-
-    stackItem.innerHTML = `
-        <div class="stack-item-header">
-            <div class="stack-item-title">
-                <div class="stack-item-icon ${status}"></div>
-                <div class="stack-item-label">
-                    <div class="stack-item-name">${name}</div>
-                    <div class="stack-item-status">${statusText}</div>
-                </div>
-            </div>
-            <div class="stack-item-expand">▼</div>
-        </div>
-        <div class="stack-item-content">
-            <div class="stack-item-details">
-                <pre style="margin: 0; font-size: 0.85rem; line-height: 1.6; overflow-x: auto;">${JSON.stringify(details, null, 2)}</pre>
-            </div>
-        </div>
-    `;
-
-    // Add click handler for expand/collapse
-    const header = stackItem.querySelector('.stack-item-header');
-    header.addEventListener('click', () => {
-        stackItem.classList.toggle('expanded');
-    });
-
-    executionContainer.appendChild(stackItem);
-}
-
-function updateStackItem(id, { status, statusText, details }) {
-    const stackItem = executionContainer.querySelector(`[data-id="${id}"]`);
-    if (!stackItem) return;
-
-    const icon = stackItem.querySelector('.stack-item-icon');
-    icon.className = `stack-item-icon ${status}`;
-
-    const statusEl = stackItem.querySelector('.stack-item-status');
-    statusEl.textContent = statusText;
-
-    const detailsEl = stackItem.querySelector('.stack-item-details pre');
-    detailsEl.textContent = JSON.stringify(details, null, 2);
-}
-
-function clearStackItems() {
-    executionContainer.innerHTML = '<div class="execution-placeholder">Click "Generate" to start the workflow</div>';
-}
 
 // Event Handlers
 async function handleGenerate() {
@@ -218,7 +164,7 @@ function handleClear() {
     setButtonLoading(false);
 
     // Clear stack items
-    clearStackItems();
+    eventStack.clear();
 }
 
 async function handleExportImage() {
